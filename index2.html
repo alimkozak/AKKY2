@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Mimarisi ve Linux Temelleri Sınavı</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .question-block {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+        }
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+        .input-text {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .matching-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .matching-list {
+            flex: 1;
+            padding: 0 10px;
+        }
+        .matching-item {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        select {
+            margin-right: 10px;
+            padding: 5px;
+        }
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background 0.3s;
+        }
+        .btn-submit:hover {
+            background: #2ecc71;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            display: none;
+            border-radius: 5px;
+        }
+        .correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .incorrect { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <h1>Sistem Mimarisi ve Linux Temelleri Sınavı</h1>
+    <button type="button" onclick="showAllAnswers()" style="background-color: #e74c3c; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.2s;">🚨 SON DAKİKA: TÜM CEVAPLARI OTOMATİK DOLDUR 🚨</button>
+    <form id="quizForm">
+        <div id="quizContent"></div>
+        <button type="button" class="btn-submit" onclick="gradeQuiz()">Sınavı Tamamla</button>
+    </form>
+    <div id="result"></div>
+</div>
+
+<script>
+const quizData = {
+    matching: [
+        { term: "1. GPL", desc: "A. Aynı kod tabanından yeni bir proje başlatmak. [cite: 679]", matchId: "C" },
+        { term: "2. TTY", desc: "B. Sistem üzerindeki tüm araçlar için ortak çalışma ortamı (örn. Bash). [cite: 199, 200]", matchId: "D" },
+        { term: "3. Kabuk (Shell)", desc: "C. Özgür yazılımın 4 temel özgürlüğünü korumak için oluşturulmuş lisans. [cite: 703]", matchId: "B" },
+        { term: "4. Çekirdek (Kernel)", desc: "D. Grafiksel işleyişe dair hiçbir bileşenin olmadığı komut satırı arayüzü. [cite: 96]", matchId: "E" },
+        { term: "5. Fork", desc: "E. Donanım ile yazılım arasındaki iletişimi sağlayan katman. [cite: 588, 592]", matchId: "A" },
+        { term: "6. Özgür Yazılım", desc: "F. Grafiksel Kullanıcı Arayüzü. [cite: 41, 115]", matchId: "G" },
+        { term: "7. GUI", desc: "G. Kullanıcıların yazılımı çalıştırma, kopyalama, dağıtma, inceleme ve değiştirme özgürlüğü. [cite: 639]", matchId: "F" },
+        { term: "8. Root", desc: "H. Komut hakkında detaylı bilgi gösteren yardım aracı (kılavuz). [cite: 516]", matchId: "J" },
+        { term: "9. man komutu", desc: "I. Debian tabanlı popüler bir Linux dağıtımı. [cite: 815, 938]", matchId: "H" },
+        { term: "10. Ubuntu", desc: "J. Sistemde sınırsız yetkiye sahip kullanıcı (UID=0). [cite: 388, 391]", matchId: "I" }
+    ],
+    multipleChoice: [
+        { q: "1. Android işletim sisteminin hangi katmanı açık kaynaklı (GPL v2) lisansa sahiptir? [cite: 587, 588, 590]", options: ["Google Play Servisleri", "Android Framework", "Linux Kernel", "Google Maps"], a: 2 },
+        { q: "2. Hangisi özgür yazılımın 4 temel özgürlüğünden biri değildir? [cite: 646, 647, 648, 715]", options: ["Yazılımı çalıştırma özgürlüğü", "Yazılımı değiştirme özgürlüğü", "Yazılımın ticari olarak satılmasını yasaklama", "Yazılımın değiştirilmiş kopyalarını dağıtma özgürlüğü"], a: 2 },
+        { q: "3. Sistem yetki kontrolünü kullanıcı adına göre değil de hangi değere göre yapar? [cite: 389, 390]", options: ["GID", "UID", "PID", "SID"], a: 1 },
+        { q: "4. Hangi tuş kombinasyonu tty ekranlarına (sanal konsollara) geçiş için kullanılır? [cite: 97, 98]", options: ["Ctrl+Alt+F1..F7", "Ctrl+Shift+T", "Alt+Tab", "Ctrl+C"], a: 0 },
+        { q: "5. Firefox tty ortamında neden çalışmaz? [cite: 112, 113, 115]", options: ["Yeterli RAM yoktur", "Display server (görüntü sunucusu) yoktur", "Root yetkisi gerekir", "Terminal tabanlı bir uygulamadır"], a: 1 },
+        { q: "6. Hangisi bir açık kaynak ofis yazılımı alternatifidir? [cite: 735, 767]", options: ["Adobe Acrobat", "LibreOffice", "Photoshop", "GIMP"], a: 1 },
+        { q: "7. `echo $SHELL` komutu ne işe yarar? [cite: 202, 204]", options: ["Yeni bir kabuk açar", "Varsayılan kabuk programını gösterir", "Sistemi kapatır", "Dosyaları listeler"], a: 1 },
+        { q: "8. Red Hat firmasının ana iş modeli aşağıdakilerden hangisidir? [cite: 627]", options: ["Kapalı kaynak işletim sistemi satmak", "Açık kaynaklı Linux'u kurumsal seviyede güvenli hale getirip abonelik ve destek satmak", "Donanım üretmek", "Ücretsiz oyun geliştirmek"], a: 1 },
+        { q: "9. TTY ekranında grafiksel bir arayüze ihtiyaç duyan bir uygulamanın display ortam değişkeni sorgulandığında (`echo $DISPLAY`) sonuç ne olur? [cite: 119, 120]", options: ["x11", "wayland", "0", "Boş döner"], a: 3 },
+        { q: "10. Komut satırında yazılan bir harici komutu (örneğin `nano`) kabuk nerede arar? [cite: 309, 311]", options: ["Masaüstünde", "PATH yolunda", "Çöp kutusunda", "/var klasöründe"], a: 1 },
+        { q: "11. Linux'ta en yetkili kullanıcı kimdir? [cite: 378, 388]", options: ["admin", "root", "super", "user"], a: 1 },
+        { q: "12. Linux dağıtımları genellikle yazılımları kurmak için hangi araca sahiptir? [cite: 810]", options: ["Kurulum (Paket) Yöneticileri", "Kayıt Defteri", "Sadece kaynak kod derleyicisi", "Antivirüs programı"], a: 0 },
+        { q: "13. Bir özgür proje olan MySQL, Oracle tarafından satın alındıktan sonra topluluk tarafından başlatılan çatal (fork) projenin adı nedir? [cite: 673]", options: ["PostgreSQL", "MariaDB", "SQLite", "MongoDB"], a: 1 },
+        { q: "14. Linux işletim sistemi çekirdeğinin kurucusu kimdir? [cite: 798]", options: ["Richard Stallman", "Bill Gates", "Linus Torvalds", "Steve Jobs"], a: 2 },
+        { q: "15. Komut geçmişinde arama yapmak için hangi kısayol kullanılır? [cite: 442, 443]", options: ["Ctrl+C", "Ctrl+R", "Alt+F", "Ctrl+L"], a: 1 },
+        { q: "16. GNU Genel Kamu Lisansı (GPL) ile lisanslanmış bir yazılım için hangisi doğrudur? [cite: 704, 712]", options: ["Kodu gizli tutulmalıdır", "Ticari olarak kullanılamaz", "Yazılım ile beraber kaynak kodu da açık olarak verilmelidir", "Sadece Linux'ta çalışır"], a: 2 },
+        { q: "17. Komut satırını temizlemek için hangi kısayol kullanılır? [cite: 418]", options: ["Ctrl+L", "Ctrl+U", "Ctrl+E", "Alt+D"], a: 0 },
+        { q: "18. `find /home/ -name test.txt` komutunda `/home/` argümanı kaçıncı argümandır? [cite: 284, 286, 290]", options: ["1.", "2.", "3.", "4."], a: 1 },
+        { q: "19. Hangisi açık kaynak kodlu bir video düzenleme programı alternatifidir? [cite: 764]", options: ["Photoshop", "Avidemux", "ClamWin", "NixNote"], a: 1 },
+        { q: "20. `sudo` komutunun amacı nedir? [cite: 332]", options: ["Sistemi yeniden başlatır", "Süper kullanıcı (root) yetkisiyle komut çalıştırmayı sağlar", "Dosya siler", "Ağ bağlantısı kurar"], a: 1 }
+    ],
+    fillIn: [
+        { q: "1. Linux'ta her kullanıcının sayısal bir kimliği vardır, root kullanıcısının UID değeri _____'dır. [cite: 388]", a: "0" },
+        { q: "2. Kullanıcı olarak yazı yazmak istediğimizde donanıma nasıl iş yaptıracağımızı bizim için arka planda yöneten katmana _____ katmanı denir. [cite: 18, 115]", a: "çekirdek" },
+        { q: "3. Komut satırında imleci satırın en sonuna götürmek için _____ kısayolu kullanılır. (Örn: Ctrl + x formatında yazınız) [cite: 402, 403]", a: "ctrl + e" },
+        { q: "4. Özgür Yazılım hareketini ve GNU projesini başlatan kişi _____ _____ 'dır. [cite: 641, 642]", a: "richard stallman" },
+        { q: "5. Grafik arayüzünün bulunmadığı, sadece `tty` olarak geçen ekranlara _____ satırı arayüzü denir. [cite: 96]", a: "komut" },
+        { q: "6. En son girilen komutu tekrar çağırmak için komut satırına _____ karakterleri yazılır. [cite: 436, 438]", a: "!!" },
+        { q: "7. `ls -al` komutunda `-al` ifadesi bir komut _____/seçeneğidir. [cite: 396, 397]", a: "parametresi" },
+        { q: "8. Açık kaynak dünyasında aynı kod tabanından yeni bir isimle farklı bir proje başlatmaya _____ denir. [cite: 677, 679]", a: "fork" },
+        { q: "9. Linux sistemlerinde en yaygın olarak kullanılan ve Bourne-Again Shell'in kısaltması olan kabuk programı _____ kabuğudur. [cite: 193]", a: "bash" },
+        { q: "10. Komut satırında dizin veya dosya isimlerini otomatik tamamlama işlemi için klavyedeki _____ tuşu kullanılır. [cite: 418]", a: "tab" }
+    ],
+    code: [
+        { q: "1. `klasor` adında yeni bir dizin oluşturmak için çalıştırılacak komutu yazınız. [cite: 83, 86]", a: "mkdir klasor" },
+        { q: "2. Mevcut çalışma dizininin yolunu ekrana yazdırmak için hangi komutu kullanırsınız? [cite: 53, 517]", a: "pwd" },
+        { q: "3. Dahili `echo` komutu hakkında kısa bir yardım metni görüntülemek için komutu nasıl yazarsınız? [cite: 462]", a: "help echo" },
+        { q: "4. `deneme` kelimesini ekrana yazdırmak (çıktı almak) için komutu yazınız. [cite: 439, 464]", a: "echo deneme" },
+        { q: "5. `ls` komutunun detaylı kullanım kılavuzu (manual) sayfasını açmak için komutu yazınız. [cite: 516]", a: "man ls" },
+        { q: "6. `/etc` dizinindeki dosyaları (gizli olanlar dahil) uzun liste biçiminde göstermek için komutu yazınız. [cite: 395]", a: "ls -al /etc" },
+        { q: "7. Sistemdeki varsayılan kabuğu (SHELL ortam değişkeni) ekrana basmak için komutu yazınız. [cite: 204]", a: "echo $shell" },
+        { q: "8. TTY'de grafik arabirim görüntü sunucusunu sorgulamak için (`DISPLAY` ortam değişkenini) ekrana basan komutu yazınız. [cite: 120]", a: "echo $display" },
+        { q: "9. `test.txt` adındaki dosyayı `nano` metin editörü ile açmak için komutu yazınız. [cite: 510, 511, 513]", a: "nano test.txt" },
+        { q: "10. `bash` yazılımının çalıştırılabilir dosya yolunu (konumunu) bulmak için komutu yazınız. [cite: 209]", a: "which bash" }
+    ]
+};
+
+function renderQuiz() {
+    const container = document.getElementById('quizContent');
+    let html = '';
+
+    // Matching
+    html += '<h2>Bölüm 1: Eşleştirme (10 Soru)</h2>';
+    html += '<div class="matching-container"><div class="matching-list">';
+    quizData.matching.forEach((m) => {
+        html += `<div class="matching-item"><select id="match_${m.matchId}">
+            <option value="">Seç</option>
+            <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option>
+        </select> ${m.term}</div>`;
+    });
+    html += '</div><div class="matching-list">';
+    quizData.matching.forEach((m) => {
+        html += `<div style="margin-bottom: 10px;">${m.desc}</div>`;
+    });
+    html += '</div></div>';
+
+    // Multiple Choice
+    html += '<h2>Bölüm 2: Çoktan Seçmeli (20 Soru)</h2>';
+    quizData.multipleChoice.forEach((mc, index) => {
+        html += `<div class="question-block" id="qb_mc_${index}">
+            <div class="question-text">${mc.q}</div>
+            <div class="options">`;
+        mc.options.forEach((opt, oIndex) => {
+            html += `<label><input type="radio" name="mc_${index}" value="${oIndex}"> ${opt}</label>`;
+        });
+        html += `</div></div>`;
+    });
+
+    // Fill in the Blanks
+    html += '<h2>Bölüm 3: Boşluk Doldurma (10 Soru)</h2>';
+    quizData.fillIn.forEach((fi, index) => {
+        html += `<div class="question-block" id="qb_fi_${index}">
+            <div class="question-text">${fi.q}</div>
+            <input type="text" class="input-text" id="fi_${index}" placeholder="Cevabınızı yazınız...">
+        </div>`;
+    });
+
+    // Write Code
+    html += '<h2>Bölüm 4: Komut Yazma (10 Soru)</h2>';
+    quizData.code.forEach((cd, index) => {
+        html += `<div class="question-block" id="qb_cd_${index}">
+            <div class="question-text">${cd.q}</div>
+            <input type="text" class="input-text" id="cd_${index}" placeholder="Komutu yazınız...">
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function normalizeStr(str) {
+    return str.toLowerCase().replace(/['"]/g, '').trim();
+}
+
+function gradeQuiz() {
+    let score = 0;
+    const total = 50;
+
+    // Grade Matching
+    quizData.matching.forEach((m) => {
+        const select = document.getElementById(`match_${m.matchId}`);
+        if(select.value === m.matchId) score++;
+    });
+
+    // Grade Multiple Choice
+    quizData.multipleChoice.forEach((mc, index) => {
+        const selected = document.querySelector(`input[name="mc_${index}"]:checked`);
+        const block = document.getElementById(`qb_mc_${index}`);
+        block.className = 'question-block'; 
+        if(selected && parseInt(selected.value) === mc.a) {
+            score++;
+            block.classList.add('correct');
+        } else {
+            block.classList.add('incorrect');
+        }
+    });
+
+    // Grade Fill in
+    quizData.fillIn.forEach((fi, index) => {
+        const input = document.getElementById(`fi_${index}`);
+        const block = document.getElementById(`qb_fi_${index}`);
+        block.className = 'question-block';
+        if(normalizeStr(input.value) === normalizeStr(fi.a)) {
+            score++;
+            block.classList.add('correct');
+        } else {
+            block.classList.add('incorrect');
+        }
+    });
+
+    // Grade Code
+    quizData.code.forEach((cd, index) => {
+        const input = document.getElementById(`cd_${index}`);
+        const block = document.getElementById(`qb_cd_${index}`);
+        block.className = 'question-block';
+        if(normalizeStr(input.value) === normalizeStr(cd.a)) {
+            score++;
+            block.classList.add('correct');
+        } else {
+            block.classList.add('incorrect');
+        }
+    });
+
+    const resultDiv = document.getElementById('result');
+    resultDiv.style.display = 'block';
+    
+    let message = `Sonucunuz: ${score} / ${total} doğru.`;
+    if(score === total) {
+        resultDiv.className = 'correct';
+        message += " Mükemmel!";
+    } else if (score >= total * 0.7) {
+        resultDiv.className = 'correct';
+        message += " Tebrikler, gayet iyi!";
+    } else {
+        resultDiv.className = 'incorrect';
+        message += " Lütfen yanlış cevapladığınız renklendirilmiş alanları gözden geçirin.";
+    }
+    resultDiv.innerHTML = message;
+    
+    // Scroll to bottom
+    window.scrollTo(0, document.body.scrollHeight);
+}
+function showAllAnswers() {
+    // 1. Eşleştirmeleri doldur
+    quizData.matching.forEach((m) => {
+        const select = document.getElementById(`match_${m.matchId}`);
+        if (select) select.value = m.matchId;
+    });
+
+    // 2. Çoktan Seçmelileri işaretle
+    quizData.multipleChoice.forEach((mc, index) => {
+        const radio = document.querySelector(`input[name="mc_${index}"][value="${mc.a}"]`);
+        if (radio) radio.checked = true;
+    });
+
+    // 3. Boşluk Doldurmaları yaz
+    quizData.fillIn.forEach((fi, index) => {
+        const input = document.getElementById(`fi_${index}`);
+        if (input) input.value = fi.a; 
+    });
+
+    // 4. Kod Yazma kısımlarını yaz
+    quizData.code.forEach((cd, index) => {
+        const input = document.getElementById(`cd_${index}`);
+        if (input) input.value = cd.a;
+    });
+
+    // Sistemdeki "Sınavı Tamamla" fonksiyonunu otomatik çağırıp her şeyi yeşil yap!
+    gradeQuiz();
+
+    // Butonu gizle ki kalabalık yapmasın
+    const btn = document.querySelector('button[onclick="showAllAnswers()"]');
+    if (btn) btn.style.display = 'none';
+}
+// Initialize
+window.onload = renderQuiz;
+</script>
+
+</body>
+</html>
